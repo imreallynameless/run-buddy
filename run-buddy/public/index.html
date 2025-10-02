@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>RunBuddy Coach</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: flex;
+				justify-content: center;
+				background: radial-gradient(circle at top, #0f172a 0%, #020617 55%, #000 100%);
+				color: #f8fafc;
+			}
+
+			.layout {
+				width: min(1080px, 100%);
+				padding: clamp(1.5rem, 4vw, 3rem);
+				display: grid;
+				gap: clamp(1.5rem, 3vw, 2.5rem);
+			}
+
+			header {
+				text-align: center;
+				display: grid;
+				gap: 0.75rem;
+			}
+
+			h1 {
+				margin: 0;
+				font-size: clamp(2rem, 5vw, 3.25rem);
+				letter-spacing: 0.02em;
+			}
+
+			header p {
+				margin: 0 auto;
+				max-width: 48rem;
+				color: rgba(241, 245, 249, 0.7);
+				line-height: 1.6;
+			}
+
+			main {
+				display: grid;
+				gap: clamp(1.25rem, 3vw, 2rem);
+			}
+
+			.panel {
+				border-radius: clamp(1rem, 2vw, 1.5rem);
+				background: rgba(15, 23, 42, 0.72);
+				border: 1px solid rgba(148, 163, 184, 0.2);
+				box-shadow: 0 24px 60px rgba(15, 23, 42, 0.5);
+				backdrop-filter: blur(14px);
+				padding: clamp(1.25rem, 3vw, 2.25rem);
+				display: grid;
+				gap: clamp(1rem, 2vw, 1.75rem);
+			}
+
+			.panel h2 {
+				margin: 0;
+				font-size: clamp(1.25rem, 3vw, 1.6rem);
+			}
+
+			.panel p {
+				margin: 0;
+				color: rgba(226, 232, 240, 0.75);
+				line-height: 1.6;
+			}
+
+			.chat-shell {
+				display: grid;
+				gap: clamp(1rem, 2vw, 1.5rem);
+			}
+
+			label {
+				display: grid;
+				gap: 0.45rem;
+				font-weight: 600;
+				color: rgba(94, 234, 212, 0.92);
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				font-size: 0.78rem;
+			}
+
+			input,
+			textarea {
+				font: inherit;
+				padding: 0.85rem 1rem;
+				border-radius: 1rem;
+				border: 1px solid rgba(148, 163, 184, 0.25);
+				background: rgba(2, 6, 23, 0.6);
+				color: inherit;
+				transition: border-color 140ms ease, box-shadow 140ms ease;
+			}
+
+			input:focus,
+			textarea:focus {
+				border-color: rgba(56, 189, 248, 0.8);
+				outline: none;
+				box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+			}
+
+			textarea {
+				min-height: 140px;
+				resize: vertical;
+			}
+
+			#messages {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: grid;
+				gap: 0.85rem;
+				max-height: min(32rem, 55vh);
+				overflow-y: auto;
+				padding-right: 0.35rem;
+			}
+
+			.message {
+				padding: 0.95rem 1.1rem;
+				border-radius: 1rem;
+				background: rgba(15, 23, 42, 0.75);
+				border: 1px solid rgba(148, 163, 184, 0.22);
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+				white-space: pre-wrap;
+			}
+
+			.message.user {
+				border-color: rgba(56, 189, 248, 0.32);
+				background: rgba(14, 116, 144, 0.45);
+			}
+
+			.message strong {
+				display: block;
+				margin-bottom: 0.35rem;
+				font-size: 0.75rem;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				color: rgba(148, 163, 184, 0.75);
+			}
+
+			.form-actions {
+				display: flex;
+				gap: 0.75rem;
+				flex-wrap: wrap;
+			}
+
+			button {
+				font: inherit;
+				font-weight: 600;
+				border: none;
+				border-radius: 999px;
+				padding: 0.9rem 1.75rem;
+				background: linear-gradient(135deg, #0ea5e9, #22d3ee);
+				color: #0b1120;
+				cursor: pointer;
+				transition: transform 140ms ease, box-shadow 140ms ease;
+			}
+
+			button:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 12px 30px rgba(14, 165, 233, 0.35);
+			}
+
+			button:active {
+				transform: translateY(0);
+				box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+			}
+
+			button.secondary {
+				background: rgba(148, 163, 184, 0.18);
+				color: rgba(241, 245, 249, 0.85);
+			}
+
+			.status {
+				font-size: 0.85rem;
+				color: rgba(148, 163, 184, 0.8);
+			}
+
+			@media (max-width: 720px) {
+				body {
+					background: linear-gradient(180deg, #0f172a, #020617 55%);
+				}
+				.panel {
+					padding: 1.15rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layout">
+			<header>
+				<h1>RunBuddy Coach</h1>
+				<p>
+					Chat with your personalized running coach. Every conversation flows through a Durable Object that remembers your email, goals, and logged workouts—so plans evolve as you improve.
+				</p>
+			</header>
+			<main>
+				<section class="panel">
+					<h2>Start a Conversation</h2>
+					<p>
+						Enter the email you want RunBuddy to associate with your training profile, then describe what you need. The interface streams replies from <code>/agents/run-buddy-agent/use-chat</code> in real time.
+					</p>
+					<div class="chat-shell">
+						<form id="chat-form" novalidate>
+							<label>
+								<span>Runner Email</span>
+								<input id="runner-email" name="email" type="email" required placeholder="athlete@example.com" autocomplete="email" />
+							</label>
+							<label>
+								<span>Message to RunBuddy</span>
+								<textarea id="runner-message" name="message" required placeholder="Hi RunBuddy, I want help with a half marathon plan."></textarea>
+							</label>
+							<div class="form-actions">
+								<button type="submit">Send to RunBuddy</button>
+								<button type="button" class="secondary" id="clear-history">Clear History</button>
+							</div>
+						</form>
+						<ul id="messages" aria-live="polite" aria-label="Conversation transcript"></ul>
+						<p class="status" id="status" role="status"></p>
+					</div>
+				</section>
+				<section class="panel" id="tips">
+					<h2>Helpful Prompts</h2>
+					<p>RunBuddy has access to tools that update your profile, log workouts, and adjust plans. Try:</p>
+					<ul>
+						<li>“Set my profile: I'm training for the NYC marathon on November 3rd and can run 5 days a week.”</li>
+						<li>“Log today's 10km tempo run at moderate effort so we can track progress.”</li>
+						<li>“What should the next four weeks look like if I'm targeting a sub-1:45 half?”</li>
+					</ul>
+				</section>
+			</main>
+		</div>
+		<script>
+			const messagesEl = document.getElementById("messages");
+			const form = document.getElementById("chat-form");
+			const emailInput = document.getElementById("runner-email");
+			const promptInput = document.getElementById("runner-message");
+			const statusEl = document.getElementById("status");
+			const clearBtn = document.getElementById("clear-history");
+			const conversation = [];
+			let seededEmailContext = false;
+
+			const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+
+			const renderMessage = (role, text) => {
+				const li = document.createElement("li");
+				li.className = `message ${role}`;
+				const strong = document.createElement("strong");
+				strong.textContent = role === "user" ? "You" : "RunBuddy";
+				li.appendChild(strong);
+				const span = document.createElement("span");
+				span.textContent = text;
+				li.appendChild(span);
+				messagesEl.appendChild(li);
+				messagesEl.scrollTop = messagesEl.scrollHeight;
+				return span;
+			};
+
+			const setFormDisabled = (isDisabled) => {
+				form.querySelectorAll("input, textarea, button").forEach((el) => {
+					el.disabled = isDisabled;
+				});
+			};
+
+			const pushUserMessage = (text) => {
+				const message = {
+					id: uuid(),
+					role: "user",
+					content: text,
+					createdAt: new Date().toISOString()
+				};
+				conversation.push(message);
+				return message;
+			};
+
+			const pushAssistantMessage = (text) => {
+				const message = {
+					id: uuid(),
+					role: "assistant",
+					content: text,
+					createdAt: new Date().toISOString()
+				};
+				conversation.push(message);
+				return message;
+			};
+
+			const resetStatus = () => {
+				statusEl.textContent = "";
+			};
+
+			const showStatus = (text) => {
+				statusEl.textContent = text;
+			};
+
+			const parseSSE = async (response, onEvent) => {
+				const reader = response.body.getReader();
+				const decoder = new TextDecoder();
+				let buffer = "";
+				while (true) {
+					const { value, done } = await reader.read();
+					if (done) break;
+					buffer += decoder.decode(value, { stream: true });
+					const segments = buffer.split("\n\n");
+					buffer = segments.pop() ?? "";
+					for (const segment of segments) {
+						const line = segment.trim();
+						if (!line.startsWith("data:")) continue;
+						const payload = line.slice(5).trim();
+						if (!payload || payload === "[DONE]") continue;
+						try {
+							const event = JSON.parse(payload);
+							onEvent(event);
+						} catch (error) {
+							console.error("Failed to parse event", payload, error);
+						}
+					}
+				}
+			};
+
+			const sendMessage = async (email, text) => {
+				if (!seededEmailContext) {
+					conversation.push({
+						id: uuid(),
+						role: "system",
+						content: `The runner's email address is ${email}. Whenever you use a tool, include this email so the Durable Object keeps state in sync. If you did not receive a user profile yet, use set_runner_profile to create one.`,
+						createdAt: new Date().toISOString()
+					});
+					seededEmailContext = true;
+				}
+
+				const userMessage = pushUserMessage(text);
+				const userBubble = renderMessage("user", text);
+				userBubble.parentElement.dataset.id = userMessage.id;
+
+				showStatus("Contacting RunBuddy...");
+				setFormDisabled(true);
+				let assistantSpan = null;
+				let assistantText = "";
+				let assistantMessage = null;
+
+				try {
+					const response = await fetch("/chat", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({ email, messages: conversation })
+					});
+
+					if (!response.ok || !response.body) {
+						throw new Error(`RunBuddy returned ${response.status}`);
+					}
+
+					assistantSpan = renderMessage("assistant", "");
+
+					await parseSSE(response, (event) => {
+						console.debug("RunBuddy event", event);
+						
+						// Handle Workers AI format
+						if (event.response !== undefined && event.response !== null) {
+							assistantText += event.response;
+							assistantSpan.textContent = assistantText;
+						}
+						
+						// Handle Vercel AI SDK format (fallback)
+						if (event.type === "text-delta") {
+							assistantText += event.delta;
+							assistantSpan.textContent = assistantText;
+						}
+						
+						if (event.type === "tool-call") {
+							showStatus(`RunBuddy is using ${event.toolName}...`);
+						}
+						
+						if (event.type === "tool-output-available") {
+							showStatus(`Tool ${event.toolName} completed.`);
+							if (event.output && typeof event.output === "string") {
+								assistantText += `\n🔧 ${event.toolName}: ${event.output}`;
+								assistantSpan.textContent = assistantText.trim();
+							}
+						}
+						
+						if (event.type === "error") {
+							assistantSpan.textContent = `⚠️ ${event.errorText ?? "Unexpected error from upstream."}`;
+						}
+					});
+
+					assistantText = assistantText.trim();
+					if (!assistantText) {
+						assistantText = "RunBuddy finished without returning text.";
+						assistantSpan.textContent = assistantText;
+					}
+					assistantMessage = pushAssistantMessage(assistantText);
+					assistantSpan.parentElement.dataset.id = assistantMessage.id;
+					showStatus(`RunBuddy replied at ${new Date().toLocaleTimeString()}`);
+				} catch (error) {
+					console.error(error);
+					showStatus("RunBuddy could not process your request. Check the console for details.");
+					if (assistantSpan) {
+						assistantSpan.textContent = `⚠️ ${error.message}`;
+					}
+				} finally {
+					setFormDisabled(false);
+					promptInput.value = "";
+					promptInput.focus();
+				}
+			};
+
+			form.addEventListener("submit", (event) => {
+				event.preventDefault();
+				const email = emailInput.value.trim();
+				const text = promptInput.value.trim();
+				resetStatus();
+				if (!email) {
+					showStatus("Please provide an email so RunBuddy can store your profile.");
+					emailInput.focus();
+					return;
+				}
+				if (!text) {
+					showStatus("Enter something you'd like to ask RunBuddy.");
+					promptInput.focus();
+					return;
+				}
+				sendMessage(email, text);
+			});
+
+			clearBtn.addEventListener("click", () => {
+				conversation.length = 0;
+				messagesEl.innerHTML = "";
+				resetStatus();
+				showStatus("Conversation history cleared. RunBuddy will treat the next message as a new session.");
+			});
+
+			window.addEventListener("load", () => {
+				if (crypto.randomUUID) {
+					const sampleMessage = "Hi RunBuddy, I want help with a half marathon plan.";
+					promptInput.placeholder = sampleMessage;
+				}
+				seededEmailContext = false;
+				statusEl.textContent = "";
+			});
+		</script>
+	</body>
+</html>

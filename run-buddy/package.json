@@ -1,0 +1,23 @@
+{
+	"name": "cloudflare-llm-chat",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"curl": "node scripts/send-chat.js",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"typescript": "^5.5.2",
+		"vitest": "~3.2.0",
+		"wrangler": "^4.40.3"
+	},
+	"dependencies": {
+		"agents": "^0.2.3",
+		"ai": "^5.0.57"
+	}
+}
