@@ -214,7 +214,7 @@ Benefits:
 ## Future Enhancements
 
 Potential improvements for RunBuddy:
-- [ ] Add authentication (e.g., Cloudflare Access)
+- [ ] Add authentication (e.g., Cloudflare Access, Google OAuth)
 - [ ] Implement workout data visualization
 - [ ] Add file upload for training data (Strava exports)
 - [ ] Multi-model support with A/B testing via AI Gateway

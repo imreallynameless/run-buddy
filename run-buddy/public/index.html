@@ -21,8 +21,9 @@
 
 			.layout {
 				width: min(1080px, 100%);
-				padding: clamp(1.5rem, 4vw, 3rem);
-				display: grid;
+				padding: clamp(1.25rem, 4vw, 3rem);
+				display: flex;
+				flex-direction: column;
 				gap: clamp(1.5rem, 3vw, 2.5rem);
 			}
 
@@ -41,7 +42,7 @@
 			header p {
 				margin: 0 auto;
 				max-width: 48rem;
-				color: rgba(241, 245, 249, 0.7);
+				color: rgba(241, 245, 249, 0.72);
 				line-height: 1.6;
 			}
 
@@ -53,12 +54,17 @@
 			.panel {
 				border-radius: clamp(1rem, 2vw, 1.5rem);
 				background: rgba(15, 23, 42, 0.72);
-				border: 1px solid rgba(148, 163, 184, 0.2);
+				border: 1px solid rgba(148, 163, 184, 0.22);
 				box-shadow: 0 24px 60px rgba(15, 23, 42, 0.5);
 				backdrop-filter: blur(14px);
 				padding: clamp(1.25rem, 3vw, 2.25rem);
-				display: grid;
+				display: flex;
+				flex-direction: column;
 				gap: clamp(1rem, 2vw, 1.75rem);
+			}
+
+			.panel--chat {
+				min-height: clamp(520px, 75vh, 760px);
 			}
 
 			.panel h2 {
@@ -73,56 +79,103 @@
 			}
 
 			.chat-shell {
-				display: grid;
-				gap: clamp(1rem, 2vw, 1.5rem);
+				display: flex;
+				flex-direction: column;
+				gap: clamp(0.9rem, 2vw, 1.5rem);
+				height: 100%;
 			}
 
-			label {
+			.chat-controls {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.85rem;
+				align-items: flex-end;
+				justify-content: space-between;
+				row-gap: 0.6rem;
+			}
+
+			.chat-controls__email {
+				flex: 1 1 320px;
 				display: grid;
-				gap: 0.45rem;
+				gap: 0.4rem;
 				font-weight: 600;
 				color: rgba(94, 234, 212, 0.92);
 				text-transform: uppercase;
 				letter-spacing: 0.08em;
 				font-size: 0.78rem;
+				position: relative;
 			}
 
-			input,
-			textarea {
+			.chat-controls__input {
+				display: flex;
+				align-items: center;
+			}
+
+			.chat-controls__input input {
+				flex: 1;
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+				margin: 0;
+			}
+
+			.chat-controls__actions {
+				display: flex;
+				align-items: stretch;
+			}
+
+			.chat-controls__actions button {
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+				min-height: 52px;
+			}
+
+			input {
 				font: inherit;
 				padding: 0.85rem 1rem;
-				border-radius: 1rem;
+				border-radius: 0.9rem;
 				border: 1px solid rgba(148, 163, 184, 0.25);
 				background: rgba(2, 6, 23, 0.6);
 				color: inherit;
 				transition: border-color 140ms ease, box-shadow 140ms ease;
+				width: 100%;
 			}
 
-			input:focus,
-			textarea:focus {
+			input:focus {
 				border-color: rgba(56, 189, 248, 0.8);
 				outline: none;
 				box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
 			}
 
-			textarea {
-				min-height: 140px;
-				resize: vertical;
+			.chat-window {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+				border-radius: 1.2rem;
+				border: 1px solid rgba(148, 163, 184, 0.2);
+				background: rgba(9, 16, 28, 0.78);
+				box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+			}
+
+			.chat-transcript {
+				flex: 1;
+				position: relative;
+				overflow-y: auto;
+				padding: clamp(1rem, 2vw, 1.4rem);
+				border-bottom: 1px solid rgba(148, 163, 184, 0.18);
 			}
 
 			#messages {
 				list-style: none;
 				margin: 0;
 				padding: 0;
-				display: grid;
+				display: flex;
+				flex-direction: column;
 				gap: 0.85rem;
-				max-height: min(32rem, 55vh);
-				overflow-y: auto;
-				padding-right: 0.35rem;
 			}
 
 			.message {
-				padding: 0.95rem 1.1rem;
+				padding: 0.95rem 1.15rem;
 				border-radius: 1rem;
 				background: rgba(15, 23, 42, 0.75);
 				border: 1px solid rgba(148, 163, 184, 0.22);
@@ -133,6 +186,7 @@
 			.message.user {
 				border-color: rgba(56, 189, 248, 0.32);
 				background: rgba(14, 116, 144, 0.45);
+				align-self: flex-end;
 			}
 
 			.message strong {
@@ -141,13 +195,32 @@
 				font-size: 0.75rem;
 				letter-spacing: 0.12em;
 				text-transform: uppercase;
-				color: rgba(148, 163, 184, 0.75);
+				color: rgba(148, 163, 184, 0.7);
 			}
 
-			.form-actions {
+			.chat-composer {
 				display: flex;
-				gap: 0.75rem;
-				flex-wrap: wrap;
+				align-items: flex-end;
+				gap: 0.85rem;
+				padding: clamp(0.85rem, 2vw, 1.1rem);
+				backdrop-filter: blur(8px);
+			}
+
+			.chat-composer textarea {
+				flex: 1;
+				font: inherit;
+				color: inherit;
+				background: transparent;
+				border: none;
+				resize: none;
+				min-height: 3rem;
+				max-height: 12rem;
+				line-height: 1.6;
+				padding: 0;
+			}
+
+			.chat-composer textarea:focus {
+				outline: none;
 			}
 
 			button {
@@ -172,22 +245,42 @@
 				box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
 			}
 
+			button[disabled] {
+				opacity: 0.7;
+				cursor: not-allowed;
+				box-shadow: none;
+			}
+
 			button.secondary {
 				background: rgba(148, 163, 184, 0.18);
 				color: rgba(241, 245, 249, 0.85);
 			}
 
+			.chat-send {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.35rem;
+				padding-inline: 1.6rem;
+				min-height: 3rem;
+			}
+
 			.status {
 				font-size: 0.85rem;
 				color: rgba(148, 163, 184, 0.8);
+				min-height: 1.4rem;
 			}
 
 			@media (max-width: 720px) {
 				body {
 					background: linear-gradient(180deg, #0f172a, #020617 55%);
 				}
+
 				.panel {
-					padding: 1.15rem;
+					padding: 1.1rem;
+				}
+
+				button {
+					padding-inline: 1.4rem;
 				}
 			}
 		</style>
@@ -201,27 +294,34 @@
 				</p>
 			</header>
 			<main>
-				<section class="panel">
-					<h2>Start a Conversation</h2>
-					<p>
-						Enter the email you want RunBuddy to associate with your training profile, then describe what you need. The interface streams replies from <code>/agents/run-buddy-agent/use-chat</code> in real time.
-					</p>
+				<section class="panel panel--chat">
+					<div>
+						<h2>Start a Conversation</h2>
+						<p>
+							Enter the email you want RunBuddy to associate with your training profile. The conversation area retains your history, and the composer at the bottom works like ChatGPT—press Enter to send or Shift+Enter for a new line.
+						</p>
+					</div>
 					<div class="chat-shell">
-						<form id="chat-form" novalidate>
-							<label>
+						<div class="chat-controls">
+							<label class="chat-controls__email" for="runner-email">
 								<span>Runner Email</span>
-								<input id="runner-email" name="email" type="email" required placeholder="athlete@example.com" autocomplete="email" />
+								<div class="chat-controls__input">
+									<input id="runner-email" name="email" type="email" required placeholder="athlete@example.com" autocomplete="email" />
+									<div class="chat-controls__actions">
+										<button type="button" class="secondary" id="clear-history">Clear History</button>
+									</div>
+								</div>
 							</label>
-							<label>
-								<span>Message to RunBuddy</span>
-								<textarea id="runner-message" name="message" required placeholder="Hi RunBuddy, I want help with a half marathon plan."></textarea>
-							</label>
-							<div class="form-actions">
-								<button type="submit">Send to RunBuddy</button>
-								<button type="button" class="secondary" id="clear-history">Clear History</button>
+						</div>
+						<div class="chat-window">
+							<div class="chat-transcript" aria-live="polite" aria-label="Conversation transcript">
+								<ul id="messages"></ul>
 							</div>
-						</form>
-						<ul id="messages" aria-live="polite" aria-label="Conversation transcript"></ul>
+							<form id="chat-form" class="chat-composer" novalidate>
+								<textarea id="runner-message" name="message" required placeholder="Type a message for RunBuddy..." aria-label="Message to RunBuddy" spellcheck="true"></textarea>
+								<button type="submit" class="chat-send">Send</button>
+							</form>
+						</div>
 						<p class="status" id="status" role="status"></p>
 					</div>
 				</section>
@@ -243,10 +343,19 @@
 			const promptInput = document.getElementById("runner-message");
 			const statusEl = document.getElementById("status");
 			const clearBtn = document.getElementById("clear-history");
+			const sendButton = form.querySelector('button[type="submit"]');
 			const conversation = [];
 			let seededEmailContext = false;
 
 			const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+
+			const autoGrowComposer = () => {
+				promptInput.style.height = "auto";
+				const next = Math.min(promptInput.scrollHeight, 220);
+				promptInput.style.height = `${Math.max(next, 52)}px`;
+			};
+
+			const getTranscriptEl = () => messagesEl.parentElement;
 
 			const renderMessage = (role, text) => {
 				const li = document.createElement("li");
@@ -258,12 +367,14 @@
 				span.textContent = text;
 				li.appendChild(span);
 				messagesEl.appendChild(li);
-				messagesEl.scrollTop = messagesEl.scrollHeight;
+				const transcript = getTranscriptEl();
+				transcript.scrollTop = transcript.scrollHeight;
 				return span;
 			};
 
-			const setFormDisabled = (isDisabled) => {
-				form.querySelectorAll("input, textarea, button").forEach((el) => {
+			const setUiDisabled = (isDisabled) => {
+				[promptInput, sendButton, emailInput, clearBtn].forEach((el) => {
+					if (!el) return;
 					el.disabled = isDisabled;
 				});
 			};
@@ -339,7 +450,7 @@
 				userBubble.parentElement.dataset.id = userMessage.id;
 
 				showStatus("Contacting RunBuddy...");
-				setFormDisabled(true);
+				setUiDisabled(true);
 				let assistantSpan = null;
 				let assistantText = "";
 				let assistantMessage = null;
@@ -361,23 +472,21 @@
 
 					await parseSSE(response, (event) => {
 						console.debug("RunBuddy event", event);
-						
-						// Handle Workers AI format
+
 						if (event.response !== undefined && event.response !== null) {
 							assistantText += event.response;
 							assistantSpan.textContent = assistantText;
 						}
-						
-						// Handle Vercel AI SDK format (fallback)
+
 						if (event.type === "text-delta") {
 							assistantText += event.delta;
 							assistantSpan.textContent = assistantText;
 						}
-						
+
 						if (event.type === "tool-call") {
 							showStatus(`RunBuddy is using ${event.toolName}...`);
 						}
-						
+
 						if (event.type === "tool-output-available") {
 							showStatus(`Tool ${event.toolName} completed.`);
 							if (event.output && typeof event.output === "string") {
@@ -385,7 +494,7 @@
 								assistantSpan.textContent = assistantText.trim();
 							}
 						}
-						
+
 						if (event.type === "error") {
 							assistantSpan.textContent = `⚠️ ${event.errorText ?? "Unexpected error from upstream."}`;
 						}
@@ -406,8 +515,9 @@
 						assistantSpan.textContent = `⚠️ ${error.message}`;
 					}
 				} finally {
-					setFormDisabled(false);
+					setUiDisabled(false);
 					promptInput.value = "";
+					autoGrowComposer();
 					promptInput.focus();
 				}
 			};
@@ -430,20 +540,28 @@
 				sendMessage(email, text);
 			});
 
+			promptInput.addEventListener("input", autoGrowComposer);
+			promptInput.addEventListener("keydown", (event) => {
+				if (event.key === "Enter" && !event.shiftKey) {
+					event.preventDefault();
+					form.requestSubmit();
+				}
+			});
+
 			clearBtn.addEventListener("click", () => {
 				conversation.length = 0;
 				messagesEl.innerHTML = "";
+				seededEmailContext = false;
 				resetStatus();
 				showStatus("Conversation history cleared. RunBuddy will treat the next message as a new session.");
+				promptInput.focus();
 			});
 
 			window.addEventListener("load", () => {
-				if (crypto.randomUUID) {
-					const sampleMessage = "Hi RunBuddy, I want help with a half marathon plan.";
-					promptInput.placeholder = sampleMessage;
-				}
+				promptInput.placeholder = "Type a message for RunBuddy...";
 				seededEmailContext = false;
 				statusEl.textContent = "";
+				autoGrowComposer();
 			});
 		</script>
 	</body>
