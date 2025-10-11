@@ -43,8 +43,29 @@ const chatPayloadSchema = z.object({
 		.trim()
 		.toLowerCase()
 		.email("Valid email is required"),
-	messages: z.array(chatMessageSchema).nonempty("messages must include at least one item")
+	messages: z
+		.array(chatMessageSchema)
+		.nonempty("messages must include at least one item")
+		.max(40, "messages must not exceed 40 entries")
+		.transform(messages => {
+			return messages.map(message => ({
+				...message,
+				content: message.content?.slice(0, 4000),
+				parts: message.parts?.map(part => ({
+					...part,
+					text: part.text?.slice(0, 4000)
+				}))
+			}));
+		})
 });
+
+const MAX_PAYLOAD_BYTES = 64 * 1024; // 64KB
+
+function ensureMaxPayloadSize(rawBody: string): void {
+	if (new TextEncoder().encode(rawBody).byteLength > MAX_PAYLOAD_BYTES) {
+		throw new HttpError(413, "Payload too large");
+	}
+}
 
 type ChatPayload = z.infer<typeof chatPayloadSchema>;
 
@@ -67,9 +88,20 @@ async function handleRootRequest(request: Request, env: Env): Promise<Response> 
 }
 
 async function parseChatPayload(request: Request): Promise<ChatPayload> {
+	let rawText = "";
+	try {
+		rawText = await request.text();
+		ensureMaxPayloadSize(rawText);
+	} catch (error) {
+		if (error instanceof HttpError) {
+			throw error;
+		}
+		throw new HttpError(400, "Invalid JSON body");
+	}
+
 	let rawBody: unknown;
 	try {
-		rawBody = await request.json();
+		rawBody = JSON.parse(rawText);
 	} catch {
 		throw new HttpError(400, "Invalid JSON body");
 	}
@@ -96,7 +128,7 @@ async function forwardChatToDurableObject(env: Env, email: string, messages: Cha
 	const forwardRequest = new Request("http://runbuddy/use-chat", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ messages })
+		body: JSON.stringify({ email, messages })
 	});
 	return stub.fetch(forwardRequest);
 }

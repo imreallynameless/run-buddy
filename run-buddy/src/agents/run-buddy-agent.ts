@@ -52,11 +52,18 @@ interface RunnerProfile {
 interface RunBuddyState {
 	activeEmail?: string;
 	profiles: Record<string, RunnerProfile>;
+	usage: Record<string, RateLimitState>;
 }
 
 const DEFAULT_STATE: RunBuddyState = {
-	profiles: {}
+	profiles: {},
+	usage: {}
 };
+
+interface RateLimitState {
+	count: number;
+	windowStart: string;
+}
 
 const agentMessageSchema = z.object({
 	role: z.string().min(1),
@@ -71,8 +78,15 @@ const agentMessageSchema = z.object({
 });
 
 const agentPayloadSchema = z.object({
-	messages: z.array(agentMessageSchema).nonempty("messages must not be empty")
+	email: z.string().trim().toLowerCase().email("Valid email is required"),
+	messages: z
+		.array(agentMessageSchema)
+		.nonempty("messages must not be empty")
+		.max(50, "messages must not exceed 50 entries")
 });
+
+const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_DAILY_REQUESTS = 10_000;
 
 type AgentPayload = z.infer<typeof agentPayloadSchema>;
 
@@ -124,6 +138,8 @@ export class RunBuddyAgent {
 
 	private async handleChat(request: Request): Promise<Response> {
 		const payload = await parseAgentPayload(request);
+		await this.repository.ensureActiveEmail(payload.email);
+		await this.repository.assertWithinRateLimit(payload.email, MAX_DAILY_REQUESTS, RATE_LIMIT_WINDOW_MS);
 		const context = await this.repository.getContext();
 		const messages = this.messageBuilder.build(payload.messages, context?.activeProfile);
 		return this.aiClient.streamChat(messages);
@@ -176,6 +192,24 @@ class AiClient {
 class ProfileRepository {
 	constructor(private readonly storage: DurableObjectStorage) {}
 
+	async ensureActiveEmail(email: string): Promise<void> {
+		const normalisedEmail = normaliseEmail(email);
+		const state = await this.getState();
+		if (state.activeEmail === normalisedEmail) {
+			return;
+		}
+		const profile = state.profiles[normalisedEmail] ?? this.createEmptyProfile(normalisedEmail);
+		const nextState: RunBuddyState = {
+			activeEmail: normalisedEmail,
+			profiles: {
+				...state.profiles,
+				[normalisedEmail]: profile
+			},
+			usage: this.withUsageEntry(state.usage, normalisedEmail)
+		};
+		await this.setState(nextState);
+	}
+
 	async getContext(): Promise<{ activeProfile?: RunnerProfile } | undefined> {
 		const state = await this.getState();
 		if (!state.activeEmail) {
@@ -189,7 +223,12 @@ class ProfileRepository {
 	}
 
 	async getState(): Promise<RunBuddyState> {
-		return (await this.storage.get<RunBuddyState>("state")) ?? DEFAULT_STATE;
+		const stored = (await this.storage.get<RunBuddyState>("state")) ?? DEFAULT_STATE;
+		return {
+			activeEmail: stored.activeEmail,
+			profiles: stored.profiles ?? {},
+			usage: stored.usage ?? {}
+		};
 	}
 
 	async setState(state: RunBuddyState): Promise<void> {
@@ -209,7 +248,8 @@ class ProfileRepository {
 					...updatedProfile,
 					updatedAt: new Date().toISOString()
 				}
-			}
+			},
+			usage: this.withUsageEntry(state.usage, normalisedEmail)
 		};
 		await this.setState(nextState);
 		return nextState.profiles[normalisedEmail];
@@ -224,6 +264,42 @@ class ProfileRepository {
 			recentRuns: [],
 			savedPlans: []
 		};
+	}
+
+	withUsageEntry(existingUsage: RunBuddyState["usage"], email: string): RunBuddyState["usage"] {
+		const usage = { ...existingUsage };
+		if (!usage[email]) {
+			usage[email] = {
+				count: 0,
+				windowStart: new Date().toISOString()
+			};
+		}
+		return usage;
+	}
+
+	async assertWithinRateLimit(email: string, limit: number, windowMs: number): Promise<void> {
+		const state = await this.getState();
+		const normalisedEmail = normaliseEmail(email);
+		const usage = this.withUsageEntry(state.usage, normalisedEmail);
+		const now = Date.now();
+		const entry = usage[normalisedEmail];
+		const windowStart = new Date(entry.windowStart).getTime();
+		if (now - windowStart >= windowMs) {
+			entry.count = 0;
+			entry.windowStart = new Date(now).toISOString();
+		}
+		if (entry.count >= limit) {
+			throw new DurableObjectHttpError(429, `Daily request limit reached (${limit} requests)`, [
+				{ path: ["messages"], message: "Rate limit exceeded" }
+			]);
+		}
+		entry.count += 1;
+		const nextState: RunBuddyState = {
+			activeEmail: state.activeEmail,
+			profiles: state.profiles,
+			usage
+		};
+		await this.setState(nextState);
 	}
 }
 

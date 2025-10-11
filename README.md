@@ -195,6 +195,7 @@ npm run cf-typegen
 ## Limitations & Future Enhancements
 
 ### Current Limitations
+- 🔒 **No Authentication (Yet)**: Anyone who knows your email can access your profile and plans. Treat this as a tech demo only until auth is implemented.
 - No authentication (email-based identification only)
 - Basic UI (functional but minimal styling)
 - No tool calling / function execution (planned)
