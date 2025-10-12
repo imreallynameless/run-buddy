@@ -1,5 +1,7 @@
 # RunBuddy - AI Running Coach
 
+- 🔒 **No Authentication (Yet)**: Anyone who knows your email can access your running plans, this is merely for fun :>
+- 
 An AI-powered running coach built on Cloudflare's platform that provides personalized training plans, tracks progress, and adapts recommendations as you improve.
 
 ## Features
